@@ -13,19 +13,19 @@ it('returns the same instance from the container', function () {
 });
 
 it('merges the package config', function () {
-    expect(config('lair-traffic-controll.placeholder'))->toBe('default');
+    expect(config('lair-traffic-control.placeholder'))->toBe('default');
 });
 
 it('loads the package translations', function () {
-    expect(trans('lair-traffic-controll::messages.placeholder'))->toBe('LairTrafficControl placeholder translation.');
+    expect(trans('lair-traffic-control::messages.placeholder'))->toBe('LairTrafficControl placeholder translation.');
 });
 
 it('loads the package views', function () {
-    expect(view()->exists('lair-traffic-controll::placeholder'))->toBeTrue();
+    expect(view()->exists('lair-traffic-control::placeholder'))->toBeTrue();
 });
 
 it('registers the artisan command', function () {
-    $this->artisan('lair-traffic-controll:placeholder')
+    $this->artisan('lair-traffic-control:placeholder')
         ->expectsOutputToContain('LairTrafficControl placeholder command executed.')
         ->assertSuccessful();
 });

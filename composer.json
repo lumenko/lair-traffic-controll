@@ -1,13 +1,13 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "lumenko/lair-traffic-controll",
+    "name": "lumenko/lair-traffic-control",
     "description": "later",
     "keywords": [
         "laravel",
         "lumenko",
-        "lair-traffic-controll"
+        "lair-traffic-control"
     ],
-    "homepage": "https://github.com/lumenko/lair-traffic-controll",
+    "homepage": "https://github.com/lumenko/lair-traffic-control",
     "license": "MIT",
     "authors": [
         {
