@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace LairTrafficControl\LairTrafficControl;
 
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\ServiceProvider;
 use LairTrafficControl\LairTrafficControl\Console\Commands\LairTrafficControlCommand;
 
@@ -19,6 +17,15 @@ class LairTrafficControlServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->mergeConfigFrom(__DIR__.'/../config/lair-traffic-control.php', 'lair-traffic-control');
+
+        config([
+            'cache.stores.traffic_store' => [
+                'driver' => 'database',
+                'table' => 'lair_traffic_control_monitor',
+                'connection' => null,
+                'lock_connection' => null,
+            ],
+        ]);
 
         $this->app->singleton(LairTrafficControl::class);
     }
@@ -35,26 +42,6 @@ class LairTrafficControlServiceProvider extends ServiceProvider
                 LairTrafficControlCommand::class,
             ]);
         }
-
-        DB::listen(function ($query) {
-            $cache = Cache::store(config('lair-traffic-control.default'));
-
-            if (static::$isHandlingQuery) {
-                return;
-            }
-
-            try {
-                static::$isHandlingQuery = true;
-                $cache->increment('traffic_total_db_queries');
-                $cache->increment('traffic_total_db_time_ms', (int) round($query->time));
-
-                if ($query->time > 50) {
-                    $cache->increment('traffic_slow_db_queries');
-                }
-            } finally {
-                static::$isHandlingQuery = false;
-            }
-        });
 
         $this->publishesMigrations([
             __DIR__.'/../database/migrations/' => database_path('migrations'),

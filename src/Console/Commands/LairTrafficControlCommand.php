@@ -31,14 +31,12 @@ class LairTrafficControlCommand extends Command
             return 1;
         }
 
-        $cache = Cache::store(config('lair-traffic-control.default'));
+        $cache = Cache::store('traffic_store');
 
         while (true) {
             $totalRequests = (int) $cache->get('traffic_total_requests', 0);
             $totalErrors = (int) $cache->get('traffic_total_errors', 0);
             $total404s = (int) $cache->get('traffic_total_404s', 0);
-            $dbQueries = (int) $cache->get('traffic_total_db_queries', 0);
-            $slowQueries = (int) $cache->get('traffic_slow_db_queries', 0);
             $routes = $cache->get('route', 'none');
 
             if (str_contains(PHP_OS, 'WIN')) {
@@ -57,9 +55,7 @@ class LairTrafficControlCommand extends Command
                     ['Total Requests', $totalRequests],
                     ['Errors (5xx)', $totalErrors > 0 ? "<fg=red>{$totalErrors}</>" : '0'],
                     ['Not Found (404)', $total404s],
-                    ['Total DB Queries', $dbQueries],
-                    ['Slow DB Queries (>50ms)', $slowQueries > 0 ? "<fg=red>{$slowQueries}</>" : '0'],
-                    ['Routes', $routes],
+                    ['Last route', $routes],
                 ],
             );
 
@@ -70,13 +66,10 @@ class LairTrafficControlCommand extends Command
 
     private function resetStats(): void
     {
-        $cache = Cache::store(config('lair-traffic-control.default'));
+        $cache = Cache::store('traffic_store');
         $cache->forget('traffic_total_requests');
         $cache->forget('traffic_total_errors');
         $cache->forget('traffic_total_404s');
-        $cache->forget('traffic_total_db_queries');
-        $cache->forget('traffic_slow_db_queries');
-        $cache->forget('traffic_last_latency');
         $cache->forget('route');
     }
 }

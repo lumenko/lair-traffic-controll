@@ -6,76 +6,42 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Default Cache Store for Lair Traffic Controll
+    | Default Cache Store
     |--------------------------------------------------------------------------
     |
-    | This option controls the default cache store that will be used by the
-    | framework. This connection is utilized if another isn't explicitly
-    | specified when running a cache operation inside the application.
+    | This option controls the cache connection that will be used to store
+    | traffic and database metrics. For production, 'redis' is highly
+    | recommended. Avoid 'database' or 'file' if traffic is heavy.
     |
     */
-
-    'default' => env('LAIR_CACHE_STORE', 'database'),
+    'default' => env('LAIR_TRAFFIC_STORE', 'database'),
 
     /*
     |--------------------------------------------------------------------------
-    | Cache Stores
+    | Performance Tracking Switches
     |--------------------------------------------------------------------------
     |
-    | Here you may define all of the cache "stores" for your application as
-    | well as their drivers. You may even define multiple stores for the
-    | same cache driver to group types of items stored in your caches.
-    |
-    | Supported drivers: "database", "file", "redis"
-    |
+    | Master switches to easily enable or disable metrics gathering without
+    | having to remove the middleware or service providers manually.
     |
     */
+    'enabled' => env('LAIR_TRAFFIC_ENABLED', true),
 
-    'stores' => [
-
-        'database' => [
-            'driver' => 'database',
-            'connection' => env('DB_LAIR_CONNECTION', env('DB_CONNECTION', 'mysql')),
-            'table' => env('DB_LAIR_TABLE', 'lair_traffic_control_monitor'),
-            'lock_connection' => env('DB_LAIR_LOCK_CONNECTION', env('DB_CONNECTION', 'mysql')),
-            'lock_table' => env('DB_LAIR_LOCK_TABLE', 'lair_traffic_control_monitor'),
-        ],
-
-        'file' => [
-            'driver' => 'file',
-            'path' => storage_path('framework/lair/data'),
-            'lock_path' => storage_path('framework/lair/data'),
-        ],
-
-        'redis' => [
-            'driver' => 'redis',
-            'connection' => env('REDIS_CACHE_CONNECTION', 'lair'),
-            'lock_connection' => env('REDIS_CACHE_LOCK_CONNECTION', 'default'),
-        ],
-
-
-        'failover' => [
-            'driver' => 'failover',
-            'stores' => [
-                'database',
-                'array',
-            ],
-        ],
-
-    ],
-
+    'track_queries' => env('LAIR_TRAFFIC_TRACK_QUERIES', false),
 
     /*
     |--------------------------------------------------------------------------
-    | Serializable Classes
+    | Metric Definitions & Thresholds
     |--------------------------------------------------------------------------
     |
-    | This value determines the classes that can be unserialized from cache
-    | storage. By default, no PHP classes will be unserialized from your
-    | cache to prevent gadget chain attacks if your APP_KEY is leaked.
+    | Define custom parameters for what qualifies as a metric flag.
+    |
+    | slow_query_ms: Queries taking longer than this will increment the slow count.
+    | cache_prefix: Prefixed to cache keys to prevent collision with app cache.
     |
     */
+    'slow_query_ms' => env('LAIR_TRAFFIC_SLOW_QUERY_MS', 50),
 
-    'serializable_classes' => false,
+    'cache_prefix' => 'lair_traffic_',
 
 ];
