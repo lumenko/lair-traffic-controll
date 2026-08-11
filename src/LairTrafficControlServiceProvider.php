@@ -11,6 +11,8 @@ use LairTrafficControl\LairTrafficControl\Console\Commands\LairTrafficControlCom
 
 class LairTrafficControlServiceProvider extends ServiceProvider
 {
+    protected static bool $isHandlingQuery = true;
+
     /**
      * Register any application services.
      */
@@ -26,43 +28,45 @@ class LairTrafficControlServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        $this->loadRoutesFrom(__DIR__.'/../routes/lair-traffic-control.php');
-
-        $this->loadViewsFrom(__DIR__.'/../resources/views', 'lair-traffic-control');
-
         $this->loadTranslationsFrom(__DIR__.'/../lang', 'lair-traffic-control');
 
+        if (! $this->app->runningInConsole()) {
+            $this->commands([
+                LairTrafficControlCommand::class,
+            ]);
+        }
+
         DB::listen(function ($query) {
-            Cache::increment('traffic_total_db_queries');
-            Cache::increment('traffic_total_db_time_ms', (int) round($query->time));
-            if($query->time > 50) {
-                Cache::increment('traffic_slow_db_queries');
+            $cache = Cache::store(config('lair-traffic-control.default'));
+
+            if (static::$isHandlingQuery) {
+                return;
+            }
+
+            try {
+                static::$isHandlingQuery = true;
+                $cache->increment('traffic_total_db_queries');
+                $cache->increment('traffic_total_db_time_ms', (int) round($query->time));
+
+                if ($query->time > 50) {
+                    $cache->increment('traffic_slow_db_queries');
+                }
+            } finally {
+                static::$isHandlingQuery = false;
             }
         });
 
-        if (! $this->app->runningInConsole()) {
-            return;
-        }
+        $this->publishesMigrations([
+            __DIR__.'/../database/migrations/' => database_path('migrations'),
+        ]);
 
         $this->publishes([
             __DIR__.'/../config/lair-traffic-control.php' => config_path('lair-traffic-control.php'),
-        ], ['lair-traffic-control', 'lair-traffic-control-config']);
-
-        $this->publishes([
-            __DIR__.'/../resources/views' => resource_path('views/vendor/lair-traffic-control'),
-        ], ['lair-traffic-control', 'lair-traffic-control-views']);
+        ]);
 
         $this->publishes([
             __DIR__.'/../lang' => $this->app->langPath('vendor/lair-traffic-control'),
         ], ['lair-traffic-control', 'lair-traffic-control-lang']);
-
-        $this->publishes([
-            __DIR__.'/../public' => public_path('vendor/lair-traffic-control'),
-        ], ['lair-traffic-control', 'lair-traffic-control-assets']);
-
-        $this->publishesMigrations([
-            __DIR__.'/../database/migrations' => database_path('migrations'),
-        ], ['lair-traffic-control', 'lair-traffic-control-migrations']);
 
         $this->commands([
             LairTrafficControlCommand::class,

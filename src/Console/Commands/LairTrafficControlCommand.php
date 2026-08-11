@@ -12,7 +12,7 @@ class LairTrafficControlCommand extends Command
     /**
      * The command signature.
      */
-    protected $signature = 'lair-traffic-control:monitor';
+    protected $signature = 'lair-traffic-control:monitor {--clear : Clear history}';
 
     /**
      * The command description.
@@ -24,12 +24,22 @@ class LairTrafficControlCommand extends Command
      */
     public function handle(): int
     {
+        if ($this->option('clear')) {
+            $this->resetStats();
+            $this->info('History cleared.');
+
+            return 1;
+        }
+
+        $cache = Cache::store(config('lair-traffic-control.default'));
+
         while (true) {
-            $totalRequests = (int) Cache::get('traffic_total_requests', 0);
-            $totalErrors = (int) Cache::get('traffic_total_errors', 0);
-            $total404s = (int) Cache::get('traffic_total_404s', 0);
-            $dbQueries = (int) Cache::get('traffic_total_db_queries', 0);
-            $slowQueries = (int) Cache::get('traffic_slow_db_queries', 0);
+            $totalRequests = (int) $cache->get('traffic_total_requests', 0);
+            $totalErrors = (int) $cache->get('traffic_total_errors', 0);
+            $total404s = (int) $cache->get('traffic_total_404s', 0);
+            $dbQueries = (int) $cache->get('traffic_total_db_queries', 0);
+            $slowQueries = (int) $cache->get('traffic_slow_db_queries', 0);
+            $routes = $cache->get('route', 'none');
 
             if (str_contains(PHP_OS, 'WIN')) {
                 system('cls');
@@ -37,9 +47,9 @@ class LairTrafficControlCommand extends Command
                 system('clear');
             }
 
-            $this->line('<fg=cyan>============================================</>');
+            $this->line('<fg=cyan>===========================================================</>');
             $this->line('<fg=yellow;options=bold>   🚦 LAIR TRAFFIC CONTROL - LIVE MONITOR   </>');
-            $this->line('<fg=cyan>============================================</>');
+            $this->line('<fg=cyan>===========================================================</>');
 
             $this->table(
                 ['Metrics', 'Value'],
@@ -49,13 +59,24 @@ class LairTrafficControlCommand extends Command
                     ['Not Found (404)', $total404s],
                     ['Total DB Queries', $dbQueries],
                     ['Slow DB Queries (>50ms)', $slowQueries > 0 ? "<fg=red>{$slowQueries}</>" : '0'],
+                    ['Routes', $routes],
                 ],
             );
 
             $this->comment('Last refresh: '.now()->format('H:i:s'));
             sleep(1);
         }
+    }
 
-        return Command::SUCCESS;
+    private function resetStats(): void
+    {
+        $cache = Cache::store(config('lair-traffic-control.default'));
+        $cache->forget('traffic_total_requests');
+        $cache->forget('traffic_total_errors');
+        $cache->forget('traffic_total_404s');
+        $cache->forget('traffic_total_db_queries');
+        $cache->forget('traffic_slow_db_queries');
+        $cache->forget('traffic_last_latency');
+        $cache->forget('route');
     }
 }

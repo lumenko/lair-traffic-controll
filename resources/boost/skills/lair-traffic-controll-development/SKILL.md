@@ -1,5 +1,5 @@
 ---
-name: lair-traffic-controll-development
+name: lair-traffic-control-development
 description: >
   Configure and apply the Lair Traffic Control package in Laravel applications.
 license: MIT
@@ -13,7 +13,7 @@ Use this skill when a Laravel application needs to integrate the Lair Traffic Co
 
 ## Primary Goal
 
-- apply the `lumenko/lair-traffic-controll` package's public API in the smallest correct way
+- apply the `lumenko/lair-traffic-control` package's public API in the smallest correct way
 
 ## Workflow
 

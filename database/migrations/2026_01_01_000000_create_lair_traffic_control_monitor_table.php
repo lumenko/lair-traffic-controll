@@ -10,15 +10,16 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('lair_traffic_controll_placeholder', function (Blueprint $table) {
+        Schema::create('lair_traffic_control_monitor', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
+            $table->string('key');
+            $table->string('value');
             $table->timestamps();
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('lair_traffic_controll_placeholder');
+        Schema::dropIfExists('lair_traffic_control_monitor');
     }
 };
