@@ -9,8 +9,6 @@ use LairTrafficControl\LairTrafficControl\Console\Commands\LairTrafficControlCom
 
 class LairTrafficControlServiceProvider extends ServiceProvider
 {
-    protected static bool $isHandlingQuery = true;
-
     /**
      * Register any application services.
      */
@@ -37,26 +35,22 @@ class LairTrafficControlServiceProvider extends ServiceProvider
     {
         $this->loadTranslationsFrom(__DIR__.'/../lang', 'lair-traffic-control');
 
-        if (! $this->app->runningInConsole()) {
+        if ($this->app->runningInConsole()) {
             $this->commands([
                 LairTrafficControlCommand::class,
             ]);
+
+            $this->publishesMigrations([
+                __DIR__.'/../database/migrations/' => database_path('migrations'),
+            ]);
+
+            $this->publishes([
+                __DIR__.'/../config/lair-traffic-control.php' => config_path('lair-traffic-control.php'),
+            ]);
+
+            $this->publishes([
+                __DIR__.'/../lang' => $this->app->langPath('vendor/lair-traffic-control'),
+            ], ['lair-traffic-control', 'lair-traffic-control-lang']);
         }
-
-        $this->publishesMigrations([
-            __DIR__.'/../database/migrations/' => database_path('migrations'),
-        ]);
-
-        $this->publishes([
-            __DIR__.'/../config/lair-traffic-control.php' => config_path('lair-traffic-control.php'),
-        ]);
-
-        $this->publishes([
-            __DIR__.'/../lang' => $this->app->langPath('vendor/lair-traffic-control'),
-        ], ['lair-traffic-control', 'lair-traffic-control-lang']);
-
-        $this->commands([
-            LairTrafficControlCommand::class,
-        ]);
     }
 }
